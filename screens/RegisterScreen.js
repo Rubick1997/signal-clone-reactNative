@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useState } from "react";
 import { StyleSheet, View, KeyboardAvoidingView } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Button, Input, Image, Text } from "react-native-elements";
+import { auth } from "../firebase";
 
 const RegisterScreen = ({ navigation }) => {
 	const [name, setName] = useState("");
@@ -13,7 +14,19 @@ const RegisterScreen = ({ navigation }) => {
 		navigation.setOptions({ headerBackTitle: "Login" });
 	}, [navigation]);
 
-	const register = () => {};
+	const register = () => {
+		auth
+			.createUserWithEmailAndPassword(email, password)
+			.then((authUser) => {
+				authUser.user.updateProfile({
+					displayName: name,
+					photoURL:
+						imageUrl ||
+						"https://thumbs.dreamstime.com/b/default-avatar-photo-placeholder-profile-icon-eps-file-easy-to-edit-default-avatar-photo-placeholder-profile-icon-124557887.jpg",
+				});
+			})
+			.catch((error) => alert(error.message));
+	};
 
 	return (
 		<KeyboardAvoidingView behavior='padding' style={styles.container}>
@@ -27,26 +40,26 @@ const RegisterScreen = ({ navigation }) => {
 					autoFocus
 					type='text'
 					value={name}
-					onChange={(text) => setName(text)}
+					onChangeText={(text) => setName(text)}
 				/>
 				<Input
 					placeholder='Email'
-					type='email'
+					type='text'
 					value={email}
-					onChange={(text) => setEmail(text)}
+					onChangeText={(text) => setEmail(text)}
 				/>
 				<Input
 					placeholder='Password'
 					type='text'
 					secureTextEntry
 					value={password}
-					onChange={(text) => setPassword(text)}
+					onChangeText={(text) => setPassword(text)}
 				/>
 				<Input
 					placeholder='Profile Picture URL(optional)'
 					type='text'
 					value={imageUrl}
-					onChange={(text) => setImageUrl(text)}
+					onChangeText={(text) => setImageUrl(text)}
 					onSubmitEditing={register}
 				/>
 			</View>
