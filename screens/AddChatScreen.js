@@ -44,5 +44,9 @@ const AddChat = ({ navigation }) => {
 export default AddChat;
 
 const styles = StyleSheet.create({
-	container: {},
+	container: {
+		backgroundColor: "white",
+		padding: 30,
+		height: "100%",
+	},
 });
