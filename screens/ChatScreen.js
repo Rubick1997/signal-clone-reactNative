@@ -98,7 +98,6 @@ const ChatScreen = ({ navigation, route }) => {
 		return unsubscribe;
 	}, [route]);
 
-	console.log(messages);
 
 	return (
 		<SafeAreaView
