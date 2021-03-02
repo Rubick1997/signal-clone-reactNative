@@ -20,6 +20,7 @@ import * as firebase from "firebase";
 
 const ChatScreen = ({ navigation, route }) => {
 	const [input, setInput] = useState("");
+	const [messages, setMessages] = useState([]);
 
 	useLayoutEffect(() => {
 		navigation.setOptions({
@@ -31,6 +32,7 @@ const ChatScreen = ({ navigation, route }) => {
 						rounded
 						source={{
 							uri:
+								messages[0]?.data.photoURL ||
 								"https://thumbs.dreamstime.com/b/default-avatar-photo-placeholder-profile-icon-eps-file-easy-to-edit-default-avatar-photo-placeholder-profile-icon-124557887.jpg",
 						}}
 					/>
@@ -63,7 +65,7 @@ const ChatScreen = ({ navigation, route }) => {
 				</View>
 			),
 		});
-	}, [navigation]);
+	}, [navigation, messages]);
 
 	const sendMessage = () => {
 		Keyboard.dismiss;
@@ -79,6 +81,25 @@ const ChatScreen = ({ navigation, route }) => {
 		setInput("");
 	};
 
+	useLayoutEffect(() => {
+		const unsubscribe = db
+			.collection("chats")
+			.doc(route.params.id)
+			.collection("messages")
+			.orderBy("timestamp", "asc")
+			.onSnapshot((snapshot) =>
+				setMessages(
+					snapshot.docs.map((doc) => ({
+						id: doc.id,
+						data: doc.data(),
+					}))
+				)
+			);
+		return unsubscribe;
+	}, [route]);
+
+	console.log(messages);
+
 	return (
 		<SafeAreaView
 			style={{
@@ -87,12 +108,57 @@ const ChatScreen = ({ navigation, route }) => {
 			}}>
 			<StatusBar style='light' />
 			<KeyboardAvoidingView
-				behavior={Platform.OS === "ios" ? "padding" : "height"}
+				behavior={Platform.OS == "ios" ? "padding" : "height"}
 				style={styles.container}
 				keyboardVerticalOffset={90}>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 					<>
-						<ScrollView></ScrollView>
+						<ScrollView contentContainerStyle={{ padding: 15 }}>
+							{messages.map(({ id, data }) =>
+								data.email === auth.currentUser.email ? (
+									<View key={id} style={styles.reciever}>
+										<Avatar
+											position='absolute'
+											rounded
+											//in case it is in web
+											containerStyle={{
+												position: "absolute",
+												bottom: -15,
+												right: -5,
+											}}
+											bottom={-15}
+											right={-5}
+											size={30}
+											source={{
+												uri: data.photoURL,
+											}}
+										/>
+										<Text style={styles.recieverText}>{data.message}</Text>
+									</View>
+								) : (
+									<View key={id} style={styles.sender}>
+										<Avatar
+											position='absolute'
+											rounded
+											//in case it is in web
+											containerStyle={{
+												position: "absolute",
+												bottom: -15,
+												left: -5,
+											}}
+											bottom={-15}
+											left={-5}
+											size={30}
+											source={{
+												uri: data.photoURL,
+											}}
+										/>
+										<Text style={styles.senderText}>{data.message}</Text>
+										<Text style={styles.senderName}>{data.displayName}</Text>
+									</View>
+								)
+							)}
+						</ScrollView>
 						<View style={styles.footer}>
 							<TextInput
 								placeholder='Signal Message'
@@ -117,6 +183,43 @@ export default ChatScreen;
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+	},
+	reciever: {
+		padding: 15,
+		backgroundColor: "#ECECEC",
+		alignSelf: "flex-end",
+		borderRadius: 20,
+		marginRight: 15,
+		marginBottom: 20,
+		maxWidth: "80%",
+		position: "relative",
+	},
+	sender: {
+		padding: 15,
+		backgroundColor: "#2B6BE6",
+		alignSelf: "flex-start",
+		borderRadius: 20,
+		marginRight: 15,
+		marginBottom: 20,
+		maxWidth: "80%",
+		position: "relative",
+	},
+	senderText: {
+		color: "white",
+		fontWeight: "500",
+		marginLeft: 10,
+		marginBottom: 15,
+	},
+	recieverText: {
+		color: "black",
+		fontWeight: "500",
+		marginLeft: 10,
+	},
+	senderName: {
+		left: 10,
+		paddingRight: 10,
+		fontSize: 10,
+		color: "white",
 	},
 	footer: {
 		flexDirection: "row",
