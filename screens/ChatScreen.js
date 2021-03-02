@@ -8,11 +8,15 @@ import {
 	KeyboardAvoidingView,
 	SafeAreaView,
 	ScrollView,
+	TouchableWithoutFeedback,
 } from "react-native";
 import { Avatar } from "react-native-elements";
 import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { TextInput } from "react-native";
+import { Keyboard } from "react-native";
+import { db, auth } from "../firebase";
+import * as firebase from "firebase";
 
 const ChatScreen = ({ navigation, route }) => {
 	const [input, setInput] = useState("");
@@ -61,7 +65,19 @@ const ChatScreen = ({ navigation, route }) => {
 		});
 	}, [navigation]);
 
-	const sendMessage = () => {};
+	const sendMessage = () => {
+		Keyboard.dismiss;
+
+		db.collection("chats").doc(route.params.id).collection("messages").add({
+			timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+			message: input,
+			displayName: auth.currentUser.displayName,
+			email: auth.currentUser.email,
+			photoURL: auth.currentUser.photoURL,
+		});
+
+		setInput("");
+	};
 
 	return (
 		<SafeAreaView
@@ -74,20 +90,23 @@ const ChatScreen = ({ navigation, route }) => {
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.container}
 				keyboardVerticalOffset={90}>
-				<>
-					<ScrollView></ScrollView>
-					<View style={styles.footer}>
-						<TextInput
-							placeholder='Signal Message'
-							style={styles.textInput}
-							value={input}
-							onChangeText={(text) => setInput(text)}
-						/>
-						<TouchableOpacity onPress={sendMessage} activeOpacity={0.5}>
-							<Ionicons name='send' size={24} color='#2B68E6' />
-						</TouchableOpacity>
-					</View>
-				</>
+				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+					<>
+						<ScrollView></ScrollView>
+						<View style={styles.footer}>
+							<TextInput
+								placeholder='Signal Message'
+								style={styles.textInput}
+								value={input}
+								onChangeText={(text) => setInput(text)}
+								onSubmitEditing={sendMessage}
+							/>
+							<TouchableOpacity onPress={sendMessage} activeOpacity={0.5}>
+								<Ionicons name='send' size={24} color='#2B68E6' />
+							</TouchableOpacity>
+						</View>
+					</>
+				</TouchableWithoutFeedback>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
 	);
