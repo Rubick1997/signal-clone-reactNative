@@ -22,7 +22,7 @@ const AddChat = ({ navigation }) => {
 			.then(() => {
 				navigation.goBack();
 			})
-			.catch((error = alert(error)));
+			.catch((error) => alert(error));
 	};
 
 	return (
